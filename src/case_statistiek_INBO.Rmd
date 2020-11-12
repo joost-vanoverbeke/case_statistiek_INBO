@@ -1,0 +1,33 @@
+---
+title: "case statistiek INBO"
+author: "Joost Vanoverbeke"
+date: "12-11-2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  eval = TRUE,
+  cache = FALSE,
+  warning = TRUE,
+  error = FALSE,
+  message = TRUE
+)
+
+library(tidyverse)
+# library(INBOtheme)
+
+```
+
+
+```{r inlezen data}
+
+data_bodem = read_delim("../data/labotest.txt",
+                        delim = "\t",
+                        locale = locale(decimal_mark = "."),
+                        trim_ws = TRUE)
+
+```
+
