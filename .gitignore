@@ -41,3 +41,12 @@ vignettes/*.pdf
 # pdf files
 *.pdf
 
+# powerpoint files
+*.pptx
+
+# html files
+*.html
+
+# log files
+*.log
+
