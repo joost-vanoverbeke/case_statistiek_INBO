@@ -1,8 +1,10 @@
 ---
-title: Vergelijkende studie van analysetechnieken voor het meten van concentraties
-  in bodemstalen
+knit: (function(inputFile, encoding) {
+        rmarkdown::render(inputFile,
+                          output_dir = "../rapportage/"
+                          )})
+title: "Vergelijkende studie van analysetechnieken voor het meten van concentraties in bodemstalen"
 author: "Joost Vanoverbeke"
-date: "12-11-2020"
 output: 
   bookdown::pdf_document2
 lang: nl
@@ -14,9 +16,9 @@ knitr::opts_chunk$set(
   echo = FALSE, 
   eval = TRUE,
   cache = FALSE,
-  warning = TRUE,
+  warning = FALSE,
   error = FALSE,
-  message = TRUE,
+  message = FALSE,
   include = FALSE,
   fig.width = 6,
   fig.height = 3
@@ -25,6 +27,7 @@ knitr::opts_chunk$set(
 library(tidyverse)
 library(lme4)
 library(car)
+library(kableExtra)
 library(INBOtheme)
 
 ```
@@ -122,7 +125,9 @@ Figuren \@ref(fig:figuur-concentratie) en \@ref(fig:figuur-bias-log) geven een o
 data_bodem_ref %>% 
   ggplot(aes(Ref_cat, Concentratie, fill = Type)) +
   geom_boxplot() +
+  labs(x = "Referentie niveau") +
   facet_wrap(~Prep)
+ggsave("../figuren/figuur_concentratie.jpeg")
 
 ```
 
@@ -133,18 +138,14 @@ data_bodem_ref %>%
   ggplot(aes(Ref_cat, Bias_log, fill = Type)) +
   geom_hline(aes(yintercept = 0), color = "darkgrey", linetype = 2) +
   geom_boxplot() +
+  labs(x = "Referentie niveau") +
   facet_wrap(~Prep)
+ggsave("../figuren/figuur_bias_log.jpeg")
 
 ```
 
 
 ## Analyse op afwijkingen tussen de ware concentratie en de gemeten concentratie.
-
-Figuren \@ref(fig:figuur-residuals-bias) en \@ref(fig:figuur-qqplot-bias) tonen aan dat de gegevens voldoen aan de assumpties voor normaal verdeelde gegevens (residuelen). Bij de berekening van het model wordt wel een waarschuwing gegeven dat het model singulair is. Dit betekent dat de complexiteit van het model op de rand zit van wat kan worden berekend met de huidige dataset. Meer bepaald is er een complexe afhankelijkheidsstructuur tussen de hoofdzakelijk doordat *Staal* genest is in referentie waarde (*Ref_cat*). Op 216 gemeten waarden zijn er eigenlijk maar 9 onafhankelijke waarnemingen, namelijk de drie stalen voor elk referentie niveau. De singulariteit is dan ook zichtbaar in de geschatte variantie toegekend aan *Staal*, die gelijk is aan nul. Aangezien *Staal* deel uitmaakt van het ontwerp van het experiment kan de random factor *Staal* in princiepe niet zomaar uit de analyse worden weggelaten. Indien we dit wel doen, zijn de resultaten echter nagenoeg identiek aan het model inclusief *Staal*, maar vervalt de waarschuwing van een singulair model (zie Rmardown script).
-
-De anova tabel van de analyse wordt weergegeven in Tabel \@ref(tab:anova-tabel-bias). Uit de analyse blijkt dat het referentieniveau geen effect heeft op de afwijking tussen gemeten concentraties en referentie waarden. Er is wel een significant effect van Type, Prep en hun interactie op de afwijking. In Figuur \@ref(fig:figuur-predicties-bias) is te zien dat het *Type* 'OUD' systematisch grotere (negatieve) afwijkingen vertoont dan het *Type* 'NIEUW'. Bovendien vertoont de *Prep* methode 'CR' ook systematisch grotere afwijkingen dan dan de *Prep* methode 'ML'. De interactie weerspiegelt zich in het feit dat de verschillen tussen *Type* 'OUD' en 'NIEUW' groter zijn voor *Prep* 'ML' dan voor *Prep* 'CR'. De beste (= kleinste afwijking) combinatie van type analyse en preparatie, is *Type* 'NIEUW' met *Prep* 'ML'. Hier wordt voor geen enkel van de referentieniveaus een afwijking waargenomen tussen de gemeten en de referentie concentratie (0 ligt voor elk van de niveaus binnen het 95% betrouwbaarheidsinterval).
-
-Merk op dat, hoewel referentieniveau geen effect heeft op de afwijking (berekend als verhouding), het natuurlijk wel een effect heeft op de gemeten concentraties zelf (zie Figuur \@ref(fig:figuur-concentratie)). Bovendien zijn de afwijkingen, indien uitgedrukt als verschil ($Concentratie - Ref\_num$), groter (in absolute waarde) voor hogere referentie waarden (\@ref(fig:figuur-bias-verschil)). Het feit dat dit effect van referentieniveau niet wordt weerspiegeld in de analyse (op de verhouding tussen gemeten concetraties en referentie) wijst erop dat de afwijkingen proportioneel zijn met de grootte van de referentie waarden.
 
 
 ```{r preliminaire analyse interacties, eval = FALSE}
@@ -202,6 +203,9 @@ mod_bias_log <-
 ```
 
 
+Figuren \@ref(fig:figuur-residuals-bias) en \@ref(fig:figuur-qqplot-bias) tonen aan dat de gegevens voldoen aan de assumpties voor normaal verdeelde gegevens (residuelen). Bij de berekening van het model wordt wel een waarschuwing gegeven dat het model singulair is. Dit betekent dat de complexiteit van het model op de rand zit van wat kan worden berekend met de huidige dataset. Meer bepaald is er een complexe afhankelijkheidsstructuur tussen de hoofdzakelijk doordat *Staal* genest is in referentie waarde (*Ref_cat*). Op 216 gemeten waarden zijn er eigenlijk maar 9 onafhankelijke waarnemingen, namelijk de drie stalen voor elk referentie niveau. De singulariteit is dan ook zichtbaar in de geschatte variantie toegekend aan *Staal*, die gelijk is aan nul. Aangezien *Staal* deel uitmaakt van het ontwerp van het experiment kan de random factor *Staal* in princiepe niet zomaar uit de analyse worden weggelaten. Indien we dit wel doen, zijn de resultaten echter nagenoeg identiek aan het model inclusief *Staal*, maar vervalt de waarschuwing van een singulair model (zie Rmardown script).
+
+
 ```{r figuur-residuals-bias, include = TRUE, fig.cap="residuelen ten opzichte van voorspelde waarden voor de analyse op afwijking van concentraties"}
 
 plot(mod_bias_log)
@@ -217,16 +221,21 @@ qqline(resid(mod_bias_log))
 ```
 
 
+De anova tabel van de analyse wordt weergegeven in Tabel \@ref(tab:anova-tabel-bias). Uit de analyse blijkt dat het referentieniveau geen effect heeft op de afwijking tussen gemeten concentraties en referentie waarden. Er is wel een significant effect van Type, Prep en hun interactie op de afwijking. In Figuur \@ref(fig:figuur-predicties-bias) is te zien dat het *Type* 'OUD' systematisch grotere (negatieve) afwijkingen vertoont dan het *Type* 'NIEUW'. Bovendien vertoont de *Prep* methode 'CR' ook systematisch grotere afwijkingen dan dan de *Prep* methode 'ML'. De interactie weerspiegelt zich in het feit dat de verschillen tussen *Type* 'OUD' en 'NIEUW' groter zijn voor *Prep* 'ML' dan voor *Prep* 'CR'. De beste (= kleinste afwijking) combinatie van type analyse en preparatie, is *Type* 'NIEUW' met *Prep* 'ML'. Hier wordt voor geen enkel van de referentieniveaus een afwijking waargenomen tussen de gemeten en de referentie concentratie (0 ligt voor elk van de niveaus binnen het 95% betrouwbaarheidsinterval).
+
+
 ```{r anova-tabel-bias, include = TRUE}
 
 anova_tab <-
-  Anova(mod_bias_log, test.statistic = "F")
+  Anova(mod_bias_log, test.statistic = "F") %>% 
+  knitr::kable(caption = "anova tabel van de analyse op afwijkingen in gemeten concentraties",
+               digits = 3)
 
-knitr::kable(anova_tab, 
-             caption = "anova tabel van de analyse op afwijkingen in gemeten concentraties",
-             digits = 3)
+# save_kable(anova_tab, "../figuren/anova_tabel_bias.png", zoom = 5)
+anova_tab
 
 ```
+
 
 
 ```{r predicties bias}
@@ -264,10 +273,15 @@ predict_bias %>%
   geom_hline(aes(yintercept = 0), color = "darkgrey", linetype = 2) +
   geom_point() +
   geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.1) +
-  labs(y = "predicties bias") +
+  labs(x = "Referentie niveau",
+       y = "predicties bias") +
   facet_wrap(~Prep)
+ggsave("../figuren/figuur_predicties_bias.jpeg")
 
 ```
+
+
+Merk op dat, hoewel referentieniveau geen effect heeft op de afwijking (berekend als verhouding), het natuurlijk wel een effect heeft op de gemeten concentraties zelf (zie Figuur \@ref(fig:figuur-concentratie)). Bovendien zijn de afwijkingen, indien uitgedrukt als verschil ($Concentratie - Ref\_num$), groter (in absolute waarde) voor hogere referentie waarden (\@ref(fig:figuur-bias-verschil)). Het feit dat dit effect van referentieniveau niet wordt weerspiegeld in de analyse (op de verhouding tussen gemeten concetraties en referentie) wijst erop dat de afwijkingen proportioneel zijn met de grootte van de referentie waarden.
 
 
 ```{r figuur-bias-verschil, include = TRUE, fig.cap="Afwijking (berekend als verschil: Concentratie - Ref_num) tussen gemeten concentratie en referentie concentratie voor elk type analyse, preparatie en referentie niveau. Een bias van nul (grijze stippellijn) geeft aan dat er geen afwijking is tussen de gemeten concentraties en de referentie waarden."}
@@ -276,7 +290,9 @@ data_bodem_ref %>%
   ggplot(aes(Ref_cat, Bias_verschil, fill = Type)) +
   geom_hline(aes(yintercept = 0), color = "darkgrey", linetype = 2) +
   geom_boxplot() +
+  labs(x = "Referentie niveau") +
   facet_wrap(~Prep)
+ggsave("../figuren/figuur_bias_verschil.jpeg")
 
 ```
 
@@ -315,9 +331,7 @@ lev_test_log <-
 ```
 
 
-Zoals aangegeven is de belangrijkste vraagstelling die hier behandeld wordt het achterhalen van afwijkingen van de gemeten concentraties ten opzichte van de referentie waarden. Toch kan ook kort de **precisie** besproken worden. Op basis van Figuren \@ref(fig:figuur-concentratie) en \@ref(fig:figuur-concentratie-log) kan opgemaakt worden dat de precisie van de metingen over het algemeen groot is. De maximale verschillen tussen individuele metingen en het gemiddelde voor een bepaald type analyse, referentie niveau en preparatie bedraagt slechts `r precisie %>% pull(max_verschil_percent) %>% max() %>% round()`% van de gemiddelde waarde. 
-Een snelle test op homogeniteit van de varianties (Levene's test) geeft aan dat er significante verschillen zijn in variantie tussen de verschillende combinaties van *Type*, *Prep* en *Ref_cat* (*F* = `r round(lev_test$Fval[1], 3)`, *p* = `r round(lev_test$p[1], 3)`). Wanneer homogeniteit van de varianties echter getest wordt op log getransformeerde concentraties, vervallen deze verschillen (*F* = `r round(lev_test_log$Fval[1], 3)`, *p* = `r round(lev_test_log$p[1], 3)`), wat aangeeft dat de precisie proportioneel is met de grootte van de concentraties (*Ref_Cat*), maar dat er voor concentraties binnen dezelfde grootte orde geen verschillen zijn tussen levels van *Type* en/of *Prep*. Met andere woorden er zijn geen verschillen waar te nemen in precisie tussen analysetechnieken. Merk hierbij wel op dat bij het testen van de homogeniteit via Levene's test geen rekening is gehouden met de afhankelijkheidsstructuur te wijten aan *Toestel* en *Staal*.
-
+Zoals aangegeven is de belangrijkste vraagstelling die hier behandeld wordt het achterhalen van afwijkingen van de gemeten concentraties ten opzichte van de referentie waarden. Toch kan ook kort de **precisie** besproken worden. Op basis van Figuren \@ref(fig:figuur-concentratie) en \@ref(fig:figuur-concentratie-log) kan opgemaakt worden dat de precisie van de metingen over het algemeen groot is. De maximale verschillen tussen individuele metingen en het gemiddelde voor een bepaald type analyse, referentie niveau en preparatie bedraagt slechts `r precisie %>% pull(max_verschil_percent) %>% max() %>% round()`% van de gemiddelde waarde.
 
 
 ```{r figuur-concentratie-log, include = TRUE, fig.cap="Gemeten concentratie (log getransformeerd) voor elk type analyse, preparatie en referentie niveau. Resultaten gepoold over Toestel en Staal."}
@@ -325,15 +339,18 @@ Een snelle test op homogeniteit van de varianties (Levene's test) geeft aan dat 
 data_bodem_ref %>% 
   ggplot(aes(Ref_cat, Concentratie_log, fill = Type)) +
   geom_boxplot() +
+  labs(x = "Referentie niveau") +
   facet_wrap(~Prep)
 
 ```
 
 
+Een snelle test op homogeniteit van de varianties (Levene's test) geeft aan dat er significante verschillen zijn in variantie tussen de verschillende combinaties van *Type*, *Prep* en *Ref_cat* (*F* = `r round(lev_test$Fval[1], 3)`, *p* = `r round(lev_test$p[1], 3)`). Wanneer homogeniteit van de varianties echter getest wordt op log getransformeerde concentraties, vervallen deze verschillen (*F* = `r round(lev_test_log$Fval[1], 3)`, *p* = `r round(lev_test_log$p[1], 3)`), wat aangeeft dat de precisie proportioneel is met de grootte van de concentraties (*Ref_Cat*), maar dat er voor concentraties binnen dezelfde grootte orde geen verschillen zijn tussen levels van *Type* en/of *Prep*. Met andere woorden er zijn geen verschillen waar te nemen in precisie tussen analysetechnieken. Merk hierbij wel op dat bij het testen van de homogeniteit via Levene's test geen rekening is gehouden met de afhankelijkheidsstructuur te wijten aan *Toestel* en *Staal*.
+
+
 # Conclusie
 
 Als conclusie kan er gesteld worden dat er significante verschillen bestaan tussen de behandelingen in de grootte van de afwijkingen. De beste resultaten worden bereikt wanneer de nieuwe analysemethode (*Type* = 'NIEUW') gecombineerd wordt met *Prep* = 'ML'. Bij deze combinatie is er geen afwijking van de gemeten concetraties ten opzichte van de referentie waarden waar te nemen.
-
 
 
 # Aanbevelingen
