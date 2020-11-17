@@ -18,14 +18,14 @@ knitr::opts_chunk$set(
   error = FALSE,
   message = TRUE,
   include = FALSE,
-  fig.width = 5,
+  fig.width = 6,
   fig.height = 3
 )
 
 library(tidyverse)
 library(lme4)
 library(car)
- library(INBOtheme)
+library(INBOtheme)
 
 ```
 
@@ -54,37 +54,32 @@ Om deze onduidelijkheden in vraagstelling en datastructuur te verhelderen, en er
 * De hoofddoelstelling is om na te gaan of er een verschil is in **afwijking** van de gemeten concentraties ten opzichte van de 'ware' concentratie.
 * Metingen met hetzelfde label in de kolom *Staal* zijn effectief gebaseerd op substalen uit hetzelfde staal. Elk uniek label geeft dus een uniek staal aan.
 * de echte concentraties in de stalen kunnen afgeleid worden uit de *Staal* labels met respectievelijk concentraties van 100, 320 en 1000 voor 'ref_laag_100', 'ref_mid_320' en 'ref_hoog_1000'.
-* Voor het staal gelabeld als 'staal_123', is er geen verdere informatie voorhanden in verband met de echte of beoogde concentratie in dit staal. Deze gegevens worden in eerste instantie uit de dataset verwijderd. Bovendien is er in dit geval geen replicatie, en kunnen er geen uitspraken gedaan worden die verder rijken dan de eigenschappen voor dit specifieke staal. 
+* Voor het staal gelabeld als 'staal_123', is er geen verdere informatie voorhanden in verband met de echte of beoogde concentratie in dit staal. Bovendien is er in dit geval geen replicatie, en kunnen er geen uitspraken gedaan worden die verder rijken dan de eigenschappen voor dit specifieke staal. Deze gegevens worden daarom tot nader order uit de dataset verwijderd. Alvorens dit staal eventueel verder te behandelen is er terugkoppeling nodig met het labo.
 * *Type* betekent een verschillende techniek die gelinkt is aan een verschillend type toestel. (cf. De toestellen zijn wederzijds exclusief voor de verschillende levels van *Type*)
 
 
 # Vraagstelling
 
-Zoals hierboven vermeld wordt er nagegaan of er een verschil tussen de analysetechnieken is in **afwijking** van de gemeten concentraties ten opzichte van de echte concentraties.
+Zoals hierboven vermeld, wordt nagegaan of er een verschil tussen de analysetechnieken is in **afwijking** van de gemeten concentraties ten opzichte van de echte concentraties.
 
 
 # Methode
 
+De volledige analyse werd uitgevoerd in R.
+
 Zoals hierboven vermeld wordt in de analyse van **afwijking** enkel gebruik gemaakt van de referentiestalen, en worden de stalen gelabeld als 'staal_123' uit de dataset verwijderd.
 
-Om een vergelijking met de referentie of 'ware' concentraties te maken, wordt op basis van de informatie in de labels een nieuwe continue variabele *Ref_num* gecreëerd die de referentie concentraties weergeeft. Als afhankelijke variabele wordt dan het verschil genomen tussen de gemeten concentraties en de referentie concentratie: $Bias = Concentratie - Ref_num$. **of Concentratie / Ref_num ???** In vergelijking met een directe analyse op de gemeten concentraties, heeft dit het voordeel dat er rechtstreeks kan worden nagegaan hoe groot het verschil is tussen de gemeten concentraties en de referentie concentratie, en of deze afwijking verschilt tussen de behandelingen. Om te voldoen aan assumptisch voor LMM (homogeneiteit van de varianties, en meer bepaald geen relatie tussen (absolute) residuelen en fitted values), wordt de afwijking (*Bias*) verder nog logaritmisch getransformeerd als volgt: $Bias_log = log(Concentratie) - log(Ref_num)$. 
+Om een vergelijking met de referentie of 'ware' concentraties te maken, wordt op basis van de informatie in de labels een nieuwe continue variabele *Ref_num* gecreëerd, die de referentie concentraties weergeeft. Op basis hiervan wordt dan de afwijking in concentraties ten opzichte van de referentie concentratie berekend als: $Bias\_log = log(Concentratie/Ref\_num)$ (de log transformatie is hier nodig om afwijkingen groter en kleiner dan de referentie waarde hetzelfde gewicht te geven). In vergelijking met een directe analyse op de gemeten concentraties, heeft een analyse van de afwijking het voordeel dat er rechtstreeks kan worden nagegaan hoe groot het verschil is tussen de gemeten concentraties en de referentie concentratie, en of deze afwijking verschilt tussen de behandelingen.   
 
 Voor de eigenlijke analyse wordt er geopteerd voor een frequentist benadering, waarbij de data worden geanalyseerd aan de hand van een LMM (Linear Mixed-effects Model). Onafhankelijke categorische variabelen zijn hierbij *Ref_cat* (referentieconcentraties als categorische variabele), *Type* en *Prep*. *Toestel* (genest in *Type*) en *Staal* (genest in *Ref*) worden toegevoegd als categorische random variabelen. 
 
-Uit een eerste visuele verkenning van de gegevens en uit preliminaire anlyses blijkt dat er ook rekening moet worden gehouden met interacties tussen de onafhankelijke variabelen. Om het éénvoudig te houden worden alle mogelijke interacties tussen de fixed variabelen meegenomen in het model en worden er geen interacties tussen random variabelen onderling of tussen random en fixed variabelen meegenomen.
+Uit een eerste visuele verkenning van de gegevens en uit preliminaire anlyses (zie Rmarkdown script) blijkt dat er ook rekening moet worden gehouden met interacties tussen de onafhankelijke variabelen. Om het éénvoudig te houden worden alle mogelijke interacties tussen de fixed variabelen meegenomen in het model en worden er geen interacties tussen random variabelen onderling of tussen random en fixed variabelen meegenomen.
 
 De formule voor het model ziet er tenslotte als volgt uit:
 
-> $Bias_log \sim Ref_cat * Type * Prep + (1|Toestel) + (1|Staal)$
+> $Bias\_log \sim Ref\_cat * Type * Prep + (1|Toestel) + (1|Staal)$
 
-waarbij $(1|x)$ aangeeft dat een variabele wordt meegenomen als random (geneste) factor (categorisch).
-
-**analyse in R aan de hand van lmer functie (in lme4 package).**
-
-**resultaten worden vergeleken op basis van ANOVA tabel met F testen met Kenward-Roger correcties op df (via car package).**
-**simulaties aan de hand van bootMer (lme4) om de betrouwbaarheidsintervallen te berekenen**
-
-
+waarbij $(1|x)$ aangeeft dat variabele $x$ wordt meegenomen als random (geneste) factor (categorisch). De analyses werden uitgevoerd aan de hand van de lmer functie (package lme4). Verschillen tussen behandelingen werden beoordeeld op basis F testen met Kenward-Roger correcties op de vrijheidsgraden (packages car, pbkrtest). Betrouwbaarheidsintervallen rond de voorspelde waarden voor elke combinatie van factoren werden berekend via simulaties aan de hand van de functie bootMer (package lme4).
 
 
 ```{r ophalen data}
@@ -98,8 +93,9 @@ data_bodem <-
            as.numeric(),
          Ref_cat = str_remove_all(Staal, "_a|_b|_c|_[:digit:]+"),
          Concentratie_log = log(Concentratie),
-         Bias = Concentratie - Ref_num,
-         Bias_log = Concentratie_log - log(Ref_num),
+         Bias_verschil = Concentratie - Ref_num,
+         Bias_ratio = Concentratie/Ref_num,
+         Bias_log = log(Bias_ratio),
          Ref_cat = factor(Ref_cat, levels = unique(Ref_cat)[order(unique(Ref_num))])) %>%
   mutate_at(vars(Staal, Toestel, Type, Prep), factor)
 
@@ -116,11 +112,12 @@ data_bodem_123 <-
 ```
 
 
-# Resultaten
+# Resultaten en bespreking
 
-Figuren \@ref(fig:figuur-concentratie), \@ref(fig:figuur-bias) en \@ref(fig:figuur-bias-log) geven een overzicht van de concentraties en bias per referentie type en Prep (gepoold over Toestel en Staal). Zoals vermeld blijkt uit preliminaire analyses dat de log transformatie van bias vereist is om te voldoen aan de assumties voor LMM. (resultaten niet getoond maar zie Rmarkdown script).
+Figuren \@ref(fig:figuur-concentratie) en \@ref(fig:figuur-bias-log) geven een overzicht van de concentraties en afwijking per referentieniveau, type analyse en preparatie (gepoold over *Toestel* en *Staal*). Bij de afwijkingen is te zien dat deze bijna uitsluitend negatief zijn, wat aangeeft dat de gemeten concetraties een onderschatting zijn van de referentie waarden.
 
-```{r figuur-concentratie, include = TRUE, fig.cap="Gemeten concentratie voor elk type analyse, preparatie en referentie niveau"}
+
+```{r figuur-concentratie, include = TRUE, fig.cap="Gemeten concentratie voor elk type analyse, preparatie en referentie niveau. Resultaten gepoold over Toestel en Staal."}
 
 data_bodem_ref %>% 
   ggplot(aes(Ref_cat, Concentratie, fill = Type)) +
@@ -130,25 +127,11 @@ data_bodem_ref %>%
 ```
 
 
-```{r figuur-bias, include = TRUE, fig.cap="Afwijking tussen gemeten concentratie en referentie concentratie voor elk type analyse, preparatie en referentie niveau"}
-
-data_bodem_ref %>% 
-  ggplot(aes(Ref_cat, Bias, fill = Type)) +
-  geom_boxplot() +
-  facet_wrap(~Prep)
-
-```
-
-
-```{r figuur-bias-log, include = TRUE, fig.cap="Afwijking (log getransformeerd) tussen gemeten concentratie en referentie concentratie voor elk type analyse, preparatie en referentie niveau"}
-
-data_bodem_ref %>% 
-  ggplot(aes(Ref_cat, Concentratie/Ref_num, fill = Type)) +
-  geom_boxplot() +
-  facet_wrap(~Prep)
+```{r figuur-bias-log, include = TRUE, fig.cap="Afwijking (berekend als log ratio) tussen gemeten concentratie en referentie concentratie voor elk type analyse, preparatie en referentie niveau. Een bias van nul (grijze stippellijn) geeft aan dat er geen afwijking is tussen de gemeten concentraties en de referentie waarden."}
 
 data_bodem_ref %>% 
   ggplot(aes(Ref_cat, Bias_log, fill = Type)) +
+  geom_hline(aes(yintercept = 0), color = "darkgrey", linetype = 2) +
   geom_boxplot() +
   facet_wrap(~Prep)
 
@@ -157,46 +140,16 @@ data_bodem_ref %>%
 
 ## Analyse op afwijkingen tussen de ware concentratie en de gemeten concentratie.
 
-Figuren \@ref(fig:figuur-residuals-bias) en \@ref(fig:figuur-qqplot-bias) tonen aan dat de gegevens (met log getransformeerde afwijking) voldoen aan de assumpties voor normaal verdeelde gegevens (residuelen). Bij de berekening van het model wordt wel een waarschuwing gegeven dat het model singulair is. Dit betekent dat de complexiteit van het model op de rand zit van wat kan worden berekend met de huidige dataset. Meer bepaald is er een complexe afhankelijkheidsstructuur tussen de hoofdzakelijk doordat *Staal* genest is in referentie waarde (*Ref_cat*). Op 216 gemeten waarden zijn er eigenlijk maar 9 onafhankelijke waarnemingen, namelijk de drie stalen voor elk referentie niveau. De singulariteit is dan ook zichtbaar in de geschatte variantie toegekend aan *Staal*, die gelijk is aan nul. Aangezien *Staal* deel uitmaakt van het ontwerp van het experiment kan de random factor *Staal* in princiepe niet zomaar uit de analyse worden weggelaten. Indien we dit wel doen, zijn de resultaten echter nagenoeg identiek aan het model inclusief *Staal*, maar vervalt de waarschuwing van een singulair model (zie Rmardown script).
+Figuren \@ref(fig:figuur-residuals-bias) en \@ref(fig:figuur-qqplot-bias) tonen aan dat de gegevens voldoen aan de assumpties voor normaal verdeelde gegevens (residuelen). Bij de berekening van het model wordt wel een waarschuwing gegeven dat het model singulair is. Dit betekent dat de complexiteit van het model op de rand zit van wat kan worden berekend met de huidige dataset. Meer bepaald is er een complexe afhankelijkheidsstructuur tussen de hoofdzakelijk doordat *Staal* genest is in referentie waarde (*Ref_cat*). Op 216 gemeten waarden zijn er eigenlijk maar 9 onafhankelijke waarnemingen, namelijk de drie stalen voor elk referentie niveau. De singulariteit is dan ook zichtbaar in de geschatte variantie toegekend aan *Staal*, die gelijk is aan nul. Aangezien *Staal* deel uitmaakt van het ontwerp van het experiment kan de random factor *Staal* in princiepe niet zomaar uit de analyse worden weggelaten. Indien we dit wel doen, zijn de resultaten echter nagenoeg identiek aan het model inclusief *Staal*, maar vervalt de waarschuwing van een singulair model (zie Rmardown script).
 
-**bias altijd negatief == onderschatten van referentie waarden**
+De anova tabel van de analyse wordt weergegeven in Tabel \@ref(tab:anova-tabel-bias). Uit de analyse blijkt dat het referentieniveau geen effect heeft op de afwijking tussen gemeten concentraties en referentie waarden. Er is wel een significant effect van Type, Prep en hun interactie op de afwijking. In Figuur \@ref(fig:figuur-predicties-bias) is te zien dat het *Type* 'OUD' systematisch grotere (negatieve) afwijkingen vertoont dan het *Type* 'NIEUW'. Bovendien vertoont de *Prep* methode 'CR' ook systematisch grotere afwijkingen dan dan de *Prep* methode 'ML'. De interactie weerspiegelt zich in het feit dat de verschillen tussen *Type* 'OUD' en 'NIEUW' groter zijn voor *Prep* 'ML' dan voor *Prep* 'CR'. De beste (= kleinste afwijking) combinatie van type analyse en preparatie, is *Type* 'NIEUW' met *Prep* 'ML'. Hier wordt voor geen enkel van de referentieniveaus een afwijking waargenomen tussen de gemeten en de referentie concentratie (0 ligt voor elk van de niveaus binnen het 95% betrouwbaarheidsinterval).
 
-De anova tabel van de analyse wordt weergegeven in Tabel \@ref(tab:anova-tabel-bias). Uit de analyse blijkt dat het referentieniveau geen effect heeft op de afwijking tussen gemeten concentraties en referentie waarden. Er is wel een significant effect van Type, Prep en hun interactie op de afwijking. In Figuur \@ref(fig:figuur-predicties-bias-log) is te zien dat het *Type* 'OUD' systematisch grotere (negatieve) afwijkingen vertoont dan het *Type* 'NIEUW'. Bovendien vertoont de *Prep* methode 'CR' ook systematisch grotere afwijkingen dan dan de *Prep* methode 'ML'. De interactie weerspiegelt zich in het feit dat de verschillen tussen *Type* 'OUD' en 'NIEUW' groter zijn voor *Prep* 'ML' dan voor *Prep* 'CR'. De beste (= kleinste afwijking) combinatie van type analyse en preparatie, is *Type* 'NIEUW' met *Prep* 'ML'. Hier wordt voor geen enkel van de referentieniveaus een afwijking waargenomen tussen de gemeten en de referentie concentratie (0 ligt voor elk van de niveaus binnen het 95% betrouwbaarheidsinterval).
-
-Merk op dat, hoewel referentiniveau geen effect heeft op de afwijking, het natuurlijk wel een effect heeft op de gemeten concentraties zelf (zie Figuur \@ref(fig:figuur-concentratie)). Ook heeft referentiecategorie een effect op de variatie tussen de metingen, met grotere variatie tussen metingen voor grotere referentie concentraties (zie Figuur \@ref(fig:figuur-bias)). Om die reden werden de afwijkingen log getransformeerd om te voldoen aan de assumpties van normaal verdeelde gegevens.
-
- In Figuur \@ref(fig:figuur-predicties-bias) zijn de afwijkingen teruggetransformeerd naar de originele schaal. Hier zien we dat de afwijkingen groter zijn voor hogere referentie waarden. Het feit dat dit effect van referentieniveau niet wordt weerspiegeld in de analyse (op log getransformeerde afwijkingen) duidt aan dat de afwijkingen proportioneel zijn met de grootte van de referentie waarden.
+Merk op dat, hoewel referentieniveau geen effect heeft op de afwijking (berekend als verhouding), het natuurlijk wel een effect heeft op de gemeten concentraties zelf (zie Figuur \@ref(fig:figuur-concentratie)). Bovendien zijn de afwijkingen, indien uitgedrukt als verschil ($Concentratie - Ref\_num$), groter (in absolute waarde) voor hogere referentie waarden (\@ref(fig:figuur-bias-verschil)). Het feit dat dit effect van referentieniveau niet wordt weerspiegeld in de analyse (op de verhouding tussen gemeten concetraties en referentie) wijst erop dat de afwijkingen proportioneel zijn met de grootte van de referentie waarden.
 
 
-```{r preliminaire analyse bias, eval = FALSE}
+```{r preliminaire analyse interacties, eval = FALSE}
 
-# analyse zonder interacties & zonder log transformatie
-mod_bias_noint <-
-  data_bodem_ref %>% 
-  lmer(Bias ~ Ref_cat + Prep + Type + (1|Toestel) + (1|Staal), .)
-
-summary(mod_bias_noint)
-plot(mod_bias_noint)
-ggplot(data = NULL, aes(resid(mod_bias_noint))) +
-  geom_histogram()
-qqnorm(resid(mod_bias_noint))
-qqline(resid(mod_bias_noint))
-
-
-# analyse met interacties & zonder log transformatie
-mod_bias <-
-  data_bodem_ref %>% 
-  lmer(Bias ~ Ref_cat * Prep * Type + (1|Toestel) + (1|Staal), .)
-
-summary(mod_bias)
-plot(mod_bias)
-ggplot(data = NULL, aes(resid(mod_bias))) +
-  geom_histogram()
-qqnorm(resid(mod_bias))
-qqline(resid(mod_bias))
-
-
-# analyse zonder interacties & met log transformatie
+# analyse zonder interacties
 mod_bias_log_noint <-
   data_bodem_ref %>% 
   lmer(Bias_log ~ Ref_cat + Prep + Type + (1|Toestel) + (1|Staal), .)
@@ -208,7 +161,7 @@ ggplot(data = NULL, aes(resid(mod_bias_log_noint))) +
 qqnorm(resid(mod_bias_log_noint))
 qqline(resid(mod_bias_log_noint))
 
-# analyse met interacties & met log transformatie
+# analyse met interacties
 mod_bias_log <-
   data_bodem_ref %>% 
   lmer(Bias_log ~ Ref_cat * Prep * Type + (1|Toestel) + (1|Staal), .)
@@ -220,26 +173,27 @@ ggplot(data = NULL, aes(resid(mod_bias_log))) +
 qqnorm(resid(mod_bias_log))
 qqline(resid(mod_bias_log))
 
+```
 
 
-mod_bias_div <-
+```{r preliminaire analyse singular model, eval = FALSE}
+
+# analyse zonder Staal
+mod_bias_log <-
   data_bodem_ref %>% 
-  lmer(Concentratie/Ref_num ~ Ref_cat * Prep * Type + (1|Toestel) + (1|Staal), .)
+  lmer(Bias_log ~ Ref_cat * Prep * Type + (1|Toestel), .)
 
-summary(mod_bias_div)
-plot(mod_bias_div)
-ggplot(data = NULL, aes(resid(mod_bias_div))) +
+summary(mod_bias_log)
+plot(mod_bias_log)
+ggplot(data = NULL, aes(resid(mod_bias_log))) +
   geom_histogram()
-qqnorm(resid(mod_bias_div))
-qqline(resid(mod_bias_div))
-
-Anova(mod_bias_log)
-Anova(mod_bias_div)
+qqnorm(resid(mod_bias_log))
+qqline(resid(mod_bias_log))
 
 ```
 
 
-```{r analyse bias, eval = TRUE}
+```{r analyse bias}
 
 mod_bias_log <-
   data_bodem_ref %>% 
@@ -268,7 +222,9 @@ qqline(resid(mod_bias_log))
 anova_tab <-
   Anova(mod_bias_log, test.statistic = "F")
 
-knitr::kable(anova_tab, caption = "anova tabel van de analyse op afwijkingen in gemeten concentraties")
+knitr::kable(anova_tab, 
+             caption = "anova tabel van de analyse op afwijkingen in gemeten concentraties",
+             digits = 3)
 
 ```
 
@@ -301,114 +257,90 @@ predict_bias <-
 ```
 
 
-```{r figuur-predicties-bias-log, include = TRUE, fig.cap="Voorspelde log getransformeerde afwijking (+- 95% betrouwbaarheidsinterval) per type analyse, preparatie en referentie niveau."}
+```{r figuur-predicties-bias, include = TRUE, fig.cap="Voorspelde afwijking (+- 95% betrouwbaarheidsinterval) per type analyse, preparatie en referentie niveau. Een bias van nul (grijze stippellijn) geeft aan dat er geen afwijking is tussen de gemeten concentraties en de referentie waarden."}
 
 predict_bias %>% 
   ggplot(aes(Ref_cat, fit, color = Type)) +
+  geom_hline(aes(yintercept = 0), color = "darkgrey", linetype = 2) +
   geom_point() +
   geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.1) +
+  labs(y = "predicties bias") +
   facet_wrap(~Prep)
 
 ```
 
 
-```{r figuur-predicties-bias, include = TRUE, fig.cap="voorspelde afwijking (+- 95% betrouwbaarheidsinterval per type analyse, preparatie en referentie niveau. Waarden zijn teruggerekend naar de originele schaal."}
+```{r figuur-bias-verschil, include = TRUE, fig.cap="Afwijking (berekend als verschil: Concentratie - Ref_num) tussen gemeten concentratie en referentie concentratie voor elk type analyse, preparatie en referentie niveau. Een bias van nul (grijze stippellijn) geeft aan dat er geen afwijking is tussen de gemeten concentraties en de referentie waarden."}
 
-predict_bias %>% 
-  ggplot(aes(Ref_cat, pred, color = Type)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = pred_lwr, ymax = pred_upr), width = 0.1) +
+data_bodem_ref %>% 
+  ggplot(aes(Ref_cat, Bias_verschil, fill = Type)) +
+  geom_hline(aes(yintercept = 0), color = "darkgrey", linetype = 2) +
+  geom_boxplot() +
   facet_wrap(~Prep)
 
 ```
 
 
-
-analyse
-variatie tussen stalen binnen elke combinatie van factoren?
-verschillen in variatie tussen combinaties van factoren?
-aparte analyse ref en staal?
+## Korte inspectie van precisie
 
 
+```{r analyse precisie, eval = TRUE}
 
-bias op de metingen?
-testen op verschil in bias tussen types toestellen
-power nodig om verschil van XXX (welk verschil is relevant) aan te tonen.
+precisie <- 
+  data_bodem_ref %>% 
+  group_by(Type, Prep, Ref_cat) %>% 
+  summarise_at(vars(Concentratie),
+               list(mean = mean, min = min, max = max)) %>% 
+  ungroup() %>% 
+  mutate(max_verschil = pmax(abs(mean-min), abs(mean-max)),
+         max_verschil_percent = max_verschil/mean*100)
 
-Om de conclusie te verfijnen zou er kennis moeten zijn over welk meetverschil (bias) relevant is, en vanaf wanneer de bias verwaarloosbaar is.
-
-
-precisie, steekproefgrootte
-hoeveel replicate stalen met elk type toestel om tot dezelfde precisie te komen?
-=> afweging kosten baten
-bepalen onderscheidend vermogen (1-beta) => suggesties om onderscheidend vermogen te verhogen
-significantie test op verschillen in precisie tussen meetmethodes?
-
-
-De outliers in de 123 stalen voor de oude techniek, suggereren dat deze techiek minder precies is. Maar te weinig data om dit statistisch te kunnen aantonen.
-levene test op verschil in variantie tussen groepen?
-
-welk meetverschil tussen types toestellen is relevant?
-=> De minimaal detecteerbare effectgrootte bij statistische toetsen met een bepaald onderscheidend vermogen en significantieniveau
-
-
-
-**aanbevelingen om beter te kunnen testen?**
-=> oplossingen voor singularity
-
-bayesian & poweranalyse?
-
-los van de verschillen in precisie tussen technieken lijkt de variatie in metingen overal relatief klein. Indien de variatie en dus de betrouwbaarheid van de geschatte gemiddeldes toch te groot is, kan er altijd geopteerd worden om een poweranalyse te doen waarbij er wordt nagegaan hoeveel replicate metingen er op een staal moeten worden gedaan om een uitspraak te kunnen doen over de concentratie met een vooropgestelde betrouwbaarheid.   
-
-
-
-
-
-```{r analyse precisie, eval = FALSE}
 
 lev_test <-
   data_bodem_ref %>% 
-  leveneTest(log(Concentratie) ~ Staal*Prep*Type, .)
+  leveneTest(Concentratie ~ Staal*Prep*Type, .) %>% 
+  rename(Fval = `F value`,
+         p = `Pr(>F)`)
 
-lev_test
+# lev_test
+
+lev_test_log <-
+  data_bodem_ref %>% 
+  leveneTest(Concentratie_log ~ Staal*Prep*Type, .) %>% 
+  rename(Fval = `F value`,
+         p = `Pr(>F)`)
+
+# lev_test_log
+
+```
+
+
+Zoals aangegeven is de belangrijkste vraagstelling die hier behandeld wordt het achterhalen van afwijkingen van de gemeten concentraties ten opzichte van de referentie waarden. Toch kan ook kort de **precisie** besproken worden. Op basis van Figuren \@ref(fig:figuur-concentratie) en \@ref(fig:figuur-concentratie-log) kan opgemaakt worden dat de precisie van de metingen over het algemeen groot is. De maximale verschillen tussen individuele metingen en het gemiddelde voor een bepaald type analyse, referentie niveau en preparatie bedraagt slechts `r precisie %>% pull(max_verschil_percent) %>% max() %>% round()`% van de gemiddelde waarde. 
+Een snelle test op homogeniteit van de varianties (Levene's test) geeft aan dat er significante verschillen zijn in variantie tussen de verschillende combinaties van *Type*, *Prep* en *Ref_cat* (*F* = `r round(lev_test$Fval[1], 3)`, *p* = `r round(lev_test$p[1], 3)`). Wanneer homogeniteit van de varianties echter getest wordt op log getransformeerde concentraties, vervallen deze verschillen (*F* = `r round(lev_test_log$Fval[1], 3)`, *p* = `r round(lev_test_log$p[1], 3)`), wat aangeeft dat de precisie proportioneel is met de grootte van de concentraties (*Ref_Cat*), maar dat er voor concentraties binnen dezelfde grootte orde geen verschillen zijn tussen levels van *Type* en/of *Prep*. Met andere woorden er zijn geen verschillen waar te nemen in precisie tussen analysetechnieken. Merk hierbij wel op dat bij het testen van de homogeniteit via Levene's test geen rekening is gehouden met de afhankelijkheidsstructuur te wijten aan *Toestel* en *Staal*.
+
+
+
+```{r figuur-concentratie-log, include = TRUE, fig.cap="Gemeten concentratie (log getransformeerd) voor elk type analyse, preparatie en referentie niveau. Resultaten gepoold over Toestel en Staal."}
+
+data_bodem_ref %>% 
+  ggplot(aes(Ref_cat, Concentratie_log, fill = Type)) +
+  geom_boxplot() +
+  facet_wrap(~Prep)
 
 ```
 
 
-```{r analyse Staal_123, eval = FALSE}
+# Conclusie
 
-data_bodem_123 %>% 
-  ggplot(aes(Prep, Concentratie, fill = Type)) +
-  geom_boxplot()
-
-mod_123 <-
-  data_bodem_123 %>% 
-  lmer(Concentratie ~ Prep*Type + (1|Toestel), .)
-
-summary(mod_123)
-plot(mod_123)
-ggplot(data = NULL, aes(resid(mod_123))) +
-  geom_histogram()
-qqnorm(resid(mod_123))
-qqline(resid(mod_123))
-
-Anova(mod_123, test.statistic = "F")
+Als conclusie kan er gesteld worden dat er significante verschillen bestaan tussen de behandelingen in de grootte van de afwijkingen. De beste resultaten worden bereikt wanneer de nieuwe analysemethode (*Type* = 'NIEUW') gecombineerd wordt met *Prep* = 'ML'. Bij deze combinatie is er geen afwijking van de gemeten concetraties ten opzichte van de referentie waarden waar te nemen.
 
 
 
-mod_123 <-
-  data_bodem_123 %>% 
-  slice(-8, -16) %>% 
-  lmer(Concentratie ~ Prep*Type + (1|Toestel), .)
+# Aanbevelingen
 
-summary(mod_123)
-plot(mod_123)
-ggplot(data = NULL, aes(resid(mod_123))) +
-  geom_histogram()
-qqnorm(resid(mod_123))
-qqline(resid(mod_123))
+=> oplossingen voor singularity
 
-Anova(mod_123, test.statistic = "F")
+Los van de verschillen in precisie tussen technieken lijkt de variatie in metingen overal relatief klein. Indien de variatie en dus de betrouwbaarheid van de geschatte gemiddeldes toch te groot is, kan er altijd geopteerd worden om een poweranalyse te doen waarbij er wordt nagegaan hoeveel replicate metingen er op een staal moeten worden gedaan om een uitspraak te kunnen doen over de concentratie met een vooropgestelde betrouwbaarheid.   
 
-```
+
 
