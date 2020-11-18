@@ -38,23 +38,26 @@ library(INBOtheme)
 Vraag voor analyse van experiment om na te gaan welke techniek om concentraties in bodemstalen te meten het beste is.
 
 
-## Onduidelijkheden/feedback
+<!-- ## Onduidelijkheden/feedback -->
 
-- Verduidelijking van 'het beste'
-  + grootste **precisie** in metingen? (kleinste verschillen tussen replicate metingen)
-  + kleinste **afwijking** in metingen t.o.v. de 'ware' concetratie? (consequent te hoge of te lage gemeten concentraties)
-- Meer achtergrond over de opzet van het experiment
-- Betekenis van kolom *Staal*
-  + Referentie niveau waarmee gemeten concentraties moeten vergeleken worden?
-  + Betekenis van toevoegsels '_a|_b|_c'.
-  + betekenis van 'staal_123'?
+<!-- - Verduidelijking van 'het beste' -->
+<!--   + grootste **precisie** in metingen? (kleinste verschillen tussen replicate metingen) -->
+<!--   + kleinste **afwijking** in metingen t.o.v. de 'ware' concetratie? (consequent te hoge of te lage gemeten concentraties) -->
+<!-- - Meer achtergrond over de opzet van het experiment -->
+<!-- - Betekenis van kolom *Staal* -->
+<!--   + Referentie niveau waarmee gemeten concentraties moeten vergeleken worden? -->
+<!--   + Betekenis van toevoegsels '_a|_b|_c'. -->
+<!--   + betekenis van 'staal_123'? -->
 <!-- - Meer achtergrondinformatie over de verschillende analysetechnieken en de link met *Toestel* -->
 
 ## Aannames
+
 - Analyse naar **afwijking** in de concentraties
 - Kolom *Staal* bevat informatie over de referentie concentraties (100, 320, 1000)
 - Alle rijen met hetzelfde label in kolom *Staal* zijn substalen uit hetzelfde staal
 - Rijen met 'staal_123' uit de dataset verwijderd
+
+- Feedback met labo vereist!
 
 ## Concetraties
 
@@ -82,5 +85,10 @@ Vraag voor analyse van experiment om na te gaan welke techniek om concentraties 
 - Verschil tussen *Type* 'NIEUW' en 'OUD' groter voor *Prep* 'ML' dan voor 'CR'
 - Kleinste (geen) afwijking voor de combinatie *Prep* 'ML' met *Type* 'NIEUW'
 
+## Conclusie & aanbevelingen
+
+- Kleinste (geen) afwijking voor de combinatie *Prep* 'ML' met *Type* 'NIEUW'
+- Terugkoppeling voor controle op correcte interpretatie van vraagstelling & gegevens
+- Terugkoppeling omtrent de design van het experiment 
 
 
