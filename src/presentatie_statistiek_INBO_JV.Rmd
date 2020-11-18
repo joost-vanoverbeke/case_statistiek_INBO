@@ -40,9 +40,9 @@ Vraag voor analyse van experiment om na te gaan welke techniek om concentraties 
 
 ## Onduidelijkheden/feedback
 
-- Meer duiding van de vraagstelling: specifieer 'het beste'
+- Verduidelijking van 'het beste'
   + grootste **precisie** in metingen? (kleinste verschillen tussen replicate metingen)
-  + kleinste **afwijking** in metingen van de 'ware' concetratie? (consequent te hoge of te lage gemeten concentraties)
+  + kleinste **afwijking** in metingen t.o.v. de 'ware' concetratie? (consequent te hoge of te lage gemeten concentraties)
 - Meer achtergrond over de opzet van het experiment
 - Betekenis van kolom *Staal*
   + Referentie niveau waarmee gemeten concentraties moeten vergeleken worden?
@@ -52,7 +52,7 @@ Vraag voor analyse van experiment om na te gaan welke techniek om concentraties 
 
 ## Aannames
 - Analyse naar **afwijking** in de concentraties
-- Kolom *Staal* bevat informatie over de referentie concentraties. (100, 320, 1000)
+- Kolom *Staal* bevat informatie over de referentie concentraties (100, 320, 1000)
 - Alle rijen met hetzelfde label in kolom *Staal* zijn substalen uit hetzelfde staal
 - Rijen met 'staal_123' uit de dataset verwijderd
 
